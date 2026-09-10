@@ -1,0 +1,7 @@
+export enum DonationStatus {
+  PENDING = 'PENDING',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED',
+  REFUNDED = 'REFUNDED',
+  EXPIRED = 'EXPIRED',
+}
