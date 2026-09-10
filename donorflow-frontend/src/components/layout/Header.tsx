@@ -3,8 +3,7 @@ import { FiLogOut, FiUser } from 'react-icons/fi';
 import { useAuthStore } from '@/stores/authStore';
 import { useNavigate } from 'react-router-dom';
 import { api } from '@/lib/axios';
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+import { resolveMediaUrl } from '@/lib/media';
 
 export function Header() {
   const { user, logout } = useAuthStore();
@@ -22,9 +21,7 @@ export function Header() {
     try {
       const { data } = await api.get('/settings/organization');
       if (data.logoUrl) {
-        // Combine API base URL with the relative logo path
-        const fullLogoUrl = `${API_URL.replace('/api', '')}${data.logoUrl}`;
-        setLogoUrl(fullLogoUrl);
+        setLogoUrl(resolveMediaUrl(data.logoUrl) ?? null);
       }
     } catch (error) {
       console.error('Failed to fetch logo', error);

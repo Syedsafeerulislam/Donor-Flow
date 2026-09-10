@@ -15,8 +15,7 @@ import { ApiBearerAuth, ApiOperation, ApiResponse, ApiTags } from '@nestjs/swagg
 import { CampaignType } from '../common/types/campaign-type.enum';
 import { UserRole } from '../common/types/user-role.enum';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { diskStorage } from 'multer';
-import { extname } from 'path';
+import { memoryStorage } from 'multer';
 import type { Response } from 'express';
 import { Public } from '../common/decorators/public.decorator';
 import { CurrentOrganization } from '../common/decorators/current-organization.decorator';
@@ -26,11 +25,15 @@ import { Roles } from '../common/decorators/roles.decorator';
 import { CreateCampaignDto } from './dto/create-campaign.dto';
 import { UpdateCampaignDto } from './dto/update-campaign.dto';
 import { CampaignsService } from './campaigns.service';
+import { StorageService } from '../supabase/storage.service';
 
 @ApiTags('campaigns')
 @Controller('campaigns')
 export class CampaignsController {
-  constructor(private readonly campaignsService: CampaignsService) { }
+  constructor(
+    private readonly campaignsService: CampaignsService,
+    private readonly storageService: StorageService,
+  ) { }
 
   @Post()
   @Roles(UserRole.ORG_ADMIN, UserRole.STAFF, UserRole.SUPER_ADMIN)
@@ -93,14 +96,7 @@ export class CampaignsController {
   @Roles(UserRole.ORG_ADMIN, UserRole.STAFF, UserRole.SUPER_ADMIN)
   @ApiBearerAuth('access-token')
   @UseInterceptors(FileInterceptor('banner', {
-    storage: diskStorage({
-      destination: './uploads',
-      filename: (req, file, cb) => {
-        const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
-        const ext = extname(file.originalname);
-        cb(null, `banner-${uniqueSuffix}${ext}`);
-      },
-    }),
+    storage: memoryStorage(),
     limits: {
       fileSize: 5 * 1024 * 1024, // 5MB max
     },
@@ -124,8 +120,13 @@ export class CampaignsController {
       throw new BadRequestException('No file uploaded');
     }
 
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1e9);
+    const ext = file.originalname.split('.').pop();
+    const path = `banners/banner-${uniqueSuffix}.${ext}`;
+    const bannerUrl = await this.storageService.uploadPublicFile(path, file.buffer, file.mimetype);
+
     return {
-      bannerUrl: `/uploads/${file.filename}`,
+      bannerUrl,
       originalName: file.originalname,
     };
   }

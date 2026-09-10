@@ -56,7 +56,3 @@ pids
 report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 
 /generated/prisma
-
-# uploaded files (local test artifacts, not source)
-/uploads/*
-!/uploads/.gitkeep

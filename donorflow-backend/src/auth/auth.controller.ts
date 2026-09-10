@@ -27,6 +27,20 @@ import type { JwtUserPayload } from '../common/decorators/current-user.decorator
 
 const REFRESH_TOKEN_MAX_AGE = 30 * 24 * 60 * 60 * 1000; // 30 days
 
+// In production the frontend and backend live on different domains (e.g. vercel.app vs
+// onrender.com), so cookies must be sameSite:'none' (which requires secure:true) to be sent
+// cross-site at all. In local dev both run on localhost, where 'strict' works fine and avoids
+// needing HTTPS.
+function authCookieOptions(maxAge: number) {
+  const isProduction = process.env.NODE_ENV === 'production';
+  return {
+    httpOnly: true,
+    secure: isProduction,
+    sameSite: (isProduction ? 'none' : 'strict') as 'none' | 'strict',
+    maxAge,
+  };
+}
+
 @ApiTags('auth')
 @Controller('auth')
 export class AuthController {
@@ -50,18 +64,8 @@ export class AuthController {
   ): Promise<{ message: string }> {
     const { accessToken, refreshToken, expiresIn } = await this.authService.login(dto);
 
-    response.cookie('access_token', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: expiresIn * 1000,
-    });
-    response.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: REFRESH_TOKEN_MAX_AGE,
-    });
+    response.cookie('access_token', accessToken, authCookieOptions(expiresIn * 1000));
+    response.cookie('refresh_token', refreshToken, authCookieOptions(REFRESH_TOKEN_MAX_AGE));
 
     return { message: 'Logged in successfully' };
   }
@@ -99,18 +103,8 @@ export class AuthController {
     const { accessToken, refreshToken, expiresIn } = await this.authService.refreshToken(refreshTokenCookie);
 
     // Supabase rotates the refresh token on every use - both cookies must be re-set.
-    response.cookie('access_token', accessToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: expiresIn * 1000,
-    });
-    response.cookie('refresh_token', refreshToken, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'strict',
-      maxAge: REFRESH_TOKEN_MAX_AGE,
-    });
+    response.cookie('access_token', accessToken, authCookieOptions(expiresIn * 1000));
+    response.cookie('refresh_token', refreshToken, authCookieOptions(REFRESH_TOKEN_MAX_AGE));
 
     return { message: 'Token refreshed successfully' };
   }

@@ -5,6 +5,7 @@ import { z } from 'zod';
 import { useNavigate, useParams } from 'react-router-dom';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { api } from '@/lib/axios';
+import { resolveMediaUrl } from '@/lib/media';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
@@ -76,7 +77,7 @@ export function CampaignFormPage() {
 
   useEffect(() => {
     if (bannerImageUrlValue && !bannerPreview) {
-      setBannerPreview(`${import.meta.env.VITE_API_URL?.replace('/api', '') || 'http://localhost:3000'}${bannerImageUrlValue}`);
+      setBannerPreview(resolveMediaUrl(bannerImageUrlValue) ?? null);
     }
   }, [bannerImageUrlValue, bannerPreview]);
 

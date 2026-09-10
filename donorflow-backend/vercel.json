@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    { "source": "/(.*)", "destination": "/api" }
+  ],
+  "crons": [
+    { "path": "/api/internal/cron/cleanup-pending-donations", "schedule": "*/30 * * * *" }
+  ]
+}

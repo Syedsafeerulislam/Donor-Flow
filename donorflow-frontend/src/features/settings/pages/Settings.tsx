@@ -9,8 +9,7 @@ import { Separator } from "@/components/ui/separator";
 import { Textarea } from "@/components/ui/textarea";
 import { Loader2, Save, Upload, X, Building2, Bell } from "lucide-react";
 import api from "@/lib/axios";
-
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3000/api';
+import { resolveMediaUrl } from "@/lib/media";
 
 export default function SettingsPage() {
   const [loading, setLoading] = useState(false);
@@ -66,7 +65,7 @@ export default function SettingsPage() {
       });
 
       if (data.logoUrl) {
-        setLogoPreview(`${API_URL.replace('/api', '')}${data.logoUrl}`);
+        setLogoPreview(resolveMediaUrl(data.logoUrl) ?? null);
       }
 
       setProfile({

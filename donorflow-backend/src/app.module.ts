@@ -15,9 +15,6 @@ import { RolesGuard } from './common/guards/roles.guard';
 import { MailModule } from './mail/mail.module';
 import { SettingsModule } from './settings/settings.module';
 import { PaymentsModule } from './payments/payments.module.js';
-import { ServeStaticModule } from '@nestjs/serve-static';
-import * as path from 'path';
-import { join } from 'path';
 
 @Module({
   imports: [
@@ -28,14 +25,6 @@ import { join } from 'path';
         limit: 100,
       },
     ]),
-     ServeStaticModule.forRoot({
-      rootPath: join(process.cwd(), 'uploads'), 
-      serveRoot: '/uploads',
-      serveStaticOptions: {
-        index: false, // ← CRITICAL: Prevents looking for index.html when file is missing
-        fallthrough: true,
-      },
-    }),
     SupabaseModule,
     UsersModule,
     AuthModule,
